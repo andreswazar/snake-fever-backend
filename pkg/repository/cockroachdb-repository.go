@@ -4,14 +4,16 @@ import (
 	"database/sql"
 	"log"
 
+	"snake-fever/snake-fever/pkg/model"
+
 	_ "github.com/lib/pq" // For use in sql import
 )
 
 //CockroachRepository is the concrete implementation of IRepository using CockroachDB
 type CockroachRepository struct{}
 
-// InsertPlayer Inserts a newly registered player into the database
-func (r CockroachRepository) InsertPlayer() {
+// InsertPlayer is a method for CockroachRepository that inserts a newly registered player into the databasev
+func (r CockroachRepository) InsertPlayer(playerObject model.Player) {
 	// Connect
 	var connectionString string = "postgresql://root@localhost:26257/snake_fever_db?sslmode=disable"
 
@@ -21,7 +23,7 @@ func (r CockroachRepository) InsertPlayer() {
 	}
 
 	// Insert
-	if _, err := db.Exec(`INSERT INTO tbl_player (created_at, updated_at) VALUES (NOW(), NOW());`); err != nil {
+	if _, err := db.Query(`INSERT INTO tbl_player (username, created_at, updated_at) VALUES ($1, NOW(), NOW());`, playerObject.Username); err != nil {
 		log.Fatal(err)
 	}
 }
