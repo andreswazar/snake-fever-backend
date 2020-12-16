@@ -1,4 +1,4 @@
-package repository
+package playerrepository
 
 import (
 	"snake-fever/snake-fever/pkg/model"
