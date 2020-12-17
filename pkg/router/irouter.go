@@ -1,8 +1,9 @@
 package router
 
-import "github.com/go-chi/chi"
+import "snake-fever/snake-fever/pkg/repository/scorerepository"
 
 // IRouter is an abstract implementation for router
 type IRouter interface {
-	StartServer() *chi.Mux
+	RouterConstructor(sr scorerepository.IScoreRepository)
+	StartServer()
 }
