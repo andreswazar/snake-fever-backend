@@ -11,6 +11,7 @@ import (
 	"strconv"
 
 	"github.com/go-chi/chi"
+	"github.com/go-chi/cors"
 )
 
 //Router is the concrete implementation of IRouter using Chi Router
@@ -24,7 +25,7 @@ func (r *Router) RouterConstructor(sr scorerepository.IScoreRepository) {
 }
 
 // Handlers
-// Returns a GET handler that has access to scoreRepository
+// Returns a GET handler that has access to scoreRepository  using closures
 func (r Router) getAllScoresRequestHandler() http.HandlerFunc {
 	scoreRepository := r.scoreRepository
 
@@ -36,7 +37,7 @@ func (r Router) getAllScoresRequestHandler() http.HandlerFunc {
 	}
 }
 
-// Returns a POST handler that has access to scoreRepository
+// Returns a POST handler that has access to scoreRepositoryu using closures
 func (r Router) postScoreRequestHandler() http.HandlerFunc {
 	scoreRepository := r.scoreRepository
 
@@ -60,6 +61,15 @@ func (r Router) postScoreRequestHandler() http.HandlerFunc {
 func (r Router) StartServer() {
 	fmt.Println("Starting Server...")
 	router := chi.NewRouter()
+
+	router.Use(cors.Handler(cors.Options{
+		AllowedOrigins:   []string{"*"},
+		AllowedMethods:   []string{"GET", "POST", "PUT", "DELETE", "OPTIONS"},
+		AllowedHeaders:   []string{"Accept", "Authorization", "Content-Type", "X-CSRF-Token"},
+		ExposedHeaders:   []string{"Link"},
+		AllowCredentials: false,
+		MaxAge:           300,
+	}))
 
 	// Register handlers
 	router.Get("/api/getAllScores", r.getAllScoresRequestHandler())
