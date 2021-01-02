@@ -1,6 +1,7 @@
 package cockroachdb
 
 import (
+	"fmt"
 	"snake-fever/snake-fever/pkg/model"
 
 	"database/sql"
@@ -25,27 +26,31 @@ func connectToDB() *sql.DB {
 }
 
 // InsertScore is a method for ScoreRepository that inserts a newly registered score into the database
-func (r ScoreRepository) InsertScore(scoreObject model.Score) {
+func (r ScoreRepository) InsertScore(scoreObject model.Score) error {
 	db := connectToDB()
 	defer db.Close()
 
 	// Create
-	if _, err := db.Query(`INSERT INTO tbl_score (score, player, created_at) VALUES ($1, $2, NOW());`, scoreObject.PointsScored, scoreObject.PlayerUsername); err != nil {
-		log.Fatal(err)
+	_, err := db.Query(`INSERT INTO tbl_score (score, player, created_at) VALUES ($1, $2, NOW());`, scoreObject.PointsScored, scoreObject.PlayerUsername)
+	if err != nil {
+		return err
 	}
+
+	return nil
 }
 
 // GetAllScores is a method for ScoreRepository that queries all the entries in the scores table
-func (r ScoreRepository) GetAllScores() []model.Score {
+func (r ScoreRepository) GetAllScores() ([]model.Score, error) {
 	db := connectToDB()
 	defer db.Close()
 
 	result := make([]model.Score, 0, 5)
 
 	// Read all
-	rows, err := db.Query("SELECT * FROM tbl_score")
+	rows, err := db.Query("SELECT * FROM tbl_score ORDER BY score DESC LIMIT 10")
 	if err != nil {
-		log.Fatal(err)
+		fmt.Printf("%v", err)
+		return []model.Score{}, err
 	}
 	defer rows.Close()
 
@@ -55,13 +60,15 @@ func (r ScoreRepository) GetAllScores() []model.Score {
 		var playerUsername string
 		var createdAt time.Time
 
-		if err := rows.Scan(&scoreID, &pointsScored, &playerUsername, &createdAt); err != nil {
-			log.Fatal(err)
+		err := rows.Scan(&scoreID, &pointsScored, &playerUsername, &createdAt)
+		if err != nil {
+			fmt.Printf("%v", err)
+			return []model.Score{}, err
 		}
 
 		scoreObject := model.Score{ID: scoreID, PointsScored: pointsScored, PlayerUsername: playerUsername, CreatedAt: createdAt}
 		result = append(result, scoreObject)
 	}
 
-	return result
+	return result, nil
 }

@@ -25,15 +25,19 @@ func (r *Router) RouterConstructor(sr scorerepository.IScoreRepository) {
 }
 
 // Handlers
-// Returns a GET handler that has access to scoreRepository  using closures
+// Returns a GET handler that has access to scoreRepository using closures
 func (r Router) getAllScoresRequestHandler() http.HandlerFunc {
 	scoreRepository := r.scoreRepository
 
 	return func(response http.ResponseWriter, request *http.Request) {
 		response.Header().Set("Content-Type", "application/json")
 
-		scoresArray := scoreRepository.GetAllScores()
-		json.NewEncoder(response).Encode(scoresArray)
+		scoresArray, err := scoreRepository.GetAllScores()
+		if err != nil {
+			response.WriteHeader(http.StatusInternalServerError)
+		} else {
+			json.NewEncoder(response).Encode(scoresArray)
+		}
 	}
 }
 
@@ -51,9 +55,13 @@ func (r Router) postScoreRequestHandler() http.HandlerFunc {
 		// Add every entry of the map to the model.Score object and then create it on the database
 		convertedScore, _ := strconv.Atoi(mappedRequest["pointsScored"])
 		scoreObject := model.Score{PointsScored: convertedScore, PlayerUsername: mappedRequest["playerUsername"]}
-		scoreRepository.InsertScore(scoreObject)
 
-		response.WriteHeader(http.StatusOK)
+		err := scoreRepository.InsertScore(scoreObject)
+		if err != nil {
+			response.WriteHeader(http.StatusInternalServerError)
+		} else {
+			response.WriteHeader(http.StatusOK)
+		}
 	}
 }
 
@@ -75,6 +83,6 @@ func (r Router) StartServer() {
 	router.Get("/api/getAllScores", r.getAllScoresRequestHandler())
 	router.Post("/api/postScore", r.postScoreRequestHandler())
 
-	fmt.Println("Server started in port 8081")
-	log.Fatal(http.ListenAndServe(":8081", router))
+	fmt.Println("Server started in port 8082")
+	log.Fatal(http.ListenAndServe(":8082", router))
 }

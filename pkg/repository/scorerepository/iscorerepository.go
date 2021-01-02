@@ -6,6 +6,6 @@ import (
 
 // IScoreRepository is an abstract implementation for repository
 type IScoreRepository interface {
-	InsertScore(scoreObject model.Score)
-	GetAllScores() []model.Score
+	InsertScore(scoreObject model.Score) error
+	GetAllScores() ([]model.Score, error)
 }
