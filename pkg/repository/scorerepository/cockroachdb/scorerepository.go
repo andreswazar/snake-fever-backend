@@ -33,6 +33,7 @@ func (r ScoreRepository) InsertScore(scoreObject model.Score) error {
 	// Create
 	_, err := db.Query(`INSERT INTO tbl_score (score, player, created_at) VALUES ($1, $2, NOW());`, scoreObject.PointsScored, scoreObject.PlayerUsername)
 	if err != nil {
+		fmt.Printf("%v\n", err)
 		return err
 	}
 
@@ -49,7 +50,7 @@ func (r ScoreRepository) GetAllScores() ([]model.Score, error) {
 	// Read all
 	rows, err := db.Query("SELECT * FROM tbl_score ORDER BY score DESC LIMIT 10")
 	if err != nil {
-		fmt.Printf("%v", err)
+		fmt.Printf("%v\n", err)
 		return []model.Score{}, err
 	}
 	defer rows.Close()
